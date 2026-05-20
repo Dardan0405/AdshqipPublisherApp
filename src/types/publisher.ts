@@ -117,6 +117,25 @@ export interface GeoReportRow {
   ecpm: number;
 }
 
+export interface SiteReportRow {
+  site_id: number;
+  site_name: string;
+  site_domain: string;
+  total_impressions: number;
+  total_clicks: number;
+  total_earnings: number;
+  ecpm: number;
+}
+
+export interface AppReportRow {
+  mobile_app_id: number;
+  app_name: string;
+  total_impressions: number;
+  total_clicks: number;
+  total_earnings: number;
+  ecpm: number;
+}
+
 export interface WalletSummary {
   earned: number;
   pending: number;
