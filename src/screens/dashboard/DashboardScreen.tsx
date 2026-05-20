@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView,
   RefreshControl, TouchableOpacity, Dimensions,
 } from 'react-native';
 import Svg, {
   Path, Line, Text as SvgText, Defs, LinearGradient, Stop,
 } from 'react-native-svg';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getDashboard } from '../../api/publisher';
 import { DashboardData } from '../../types/publisher';
 import useAuthStore from '../../stores/authStore';
+import SkeletonCard from '../../components/SkeletonCard';
+import { DashboardStackParamList } from '../../navigation/AppTabs';
+
+type Props = NativeStackScreenProps<DashboardStackParamList, 'Dashboard'>;
 
 const fmt = (n: number) => `€${n.toFixed(2)}`;
 const fmtK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
@@ -114,7 +119,7 @@ function StatCard({ label, value, change }: { label: string; value: string; chan
   );
 }
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }: Props) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -136,8 +141,38 @@ export default function DashboardScreen() {
 
   useEffect(() => { load(); }, []);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
   if (loading) {
-    return <View style={s.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+    return (
+      <View style={s.container}>
+        <View style={s.header}>
+          <SkeletonCard height={22} borderRadius={6} style={{ width: '50%', marginBottom: 8, backgroundColor: '#818cf8' }} />
+          <SkeletonCard height={13} borderRadius={4} style={{ width: '65%', backgroundColor: '#818cf8', marginBottom: 12 }} />
+          <SkeletonCard height={16} borderRadius={4} style={{ width: '40%', backgroundColor: '#818cf8' }} />
+        </View>
+        <View style={{ paddingHorizontal: 16, marginTop: 20 }}>
+          <SkeletonCard height={14} borderRadius={4} style={{ width: 80, marginBottom: 10 }} />
+        </View>
+        <View style={s.row}>
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+        </View>
+        <View style={s.row}>
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+        </View>
+        <SkeletonCard height={210} style={{ marginHorizontal: 12, marginTop: 12, borderRadius: 12 }} />
+        <View style={[s.row, { marginTop: 12 }]}>
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+          <SkeletonCard height={80} style={{ flex: 1 }} />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -152,8 +187,15 @@ export default function DashboardScreen() {
       }
     >
       <View style={s.header}>
-        <Text style={s.greeting}>Welcome back</Text>
-        <Text style={s.email}>{user?.email}</Text>
+        <View style={s.headerRow}>
+          <View>
+            <Text style={s.greeting}>Welcome back</Text>
+            <Text style={s.email}>{user?.email}</Text>
+          </View>
+          <TouchableOpacity style={s.bellBtn} onPress={() => navigation.navigate('Notifications')}>
+            <Text style={s.bellIcon}>🔔</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={s.balance}>Balance: {fmt(data?.balance ?? 0)}</Text>
       </View>
 
@@ -226,9 +268,12 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#6366f1', padding: 24, paddingTop: 56 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   greeting: { fontSize: 22, fontWeight: '700', color: '#fff' },
   email: { fontSize: 13, color: '#c7d2fe', marginTop: 2 },
   balance: { fontSize: 16, color: '#fff', marginTop: 12, fontWeight: '600' },
+  bellBtn: { padding: 4 },
+  bellIcon: { fontSize: 22 },
   sectionTitle: {
     fontSize: 16, fontWeight: '700', color: '#374151',
     marginHorizontal: 16, marginTop: 20, marginBottom: 10,

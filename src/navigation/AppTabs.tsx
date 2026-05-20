@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
 
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
+import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import SitesScreen from '../screens/sites/SitesScreen';
 import SiteFormScreen from '../screens/sites/SiteFormScreen';
 import AppsScreen from '../screens/apps/AppsScreen';
@@ -23,6 +24,11 @@ import TwoFactorSettingsScreen from '../screens/settings/TwoFactorSettingsScreen
 import ApiKeysScreen from '../screens/settings/ApiKeysScreen';
 
 // ── Typed param lists ─────────────────────────────────────────────────────────
+
+export type DashboardStackParamList = {
+  Dashboard: undefined;
+  Notifications: undefined;
+};
 
 export type SitesStackParamList = {
   SitesList: undefined;
@@ -51,9 +57,19 @@ export type SettingsStackParamList = {
 
 // ── Stack navigators ──────────────────────────────────────────────────────────
 
+const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 const SitesStack = createNativeStackNavigator<SitesStackParamList>();
 const EarningsStack = createNativeStackNavigator<EarningsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
+
+function DashboardStackNavigator() {
+  return (
+    <DashboardStack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#fff' }, headerTintColor: '#6366f1' }}>
+      <DashboardStack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
+    </DashboardStack.Navigator>
+  );
+}
 
 function SitesStackNavigator() {
   return (
@@ -113,7 +129,7 @@ export default function AppTabs() {
     >
       <Tab.Screen
         name="DashboardTab"
-        component={DashboardScreen}
+        component={DashboardStackNavigator}
         options={{ title: 'Dashboard', tabBarIcon: icon('📊') }}
       />
       <Tab.Screen
