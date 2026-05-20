@@ -18,6 +18,9 @@ import ReferralsScreen from '../screens/referrals/ReferralsScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import PersonalInfoScreen from '../screens/settings/PersonalInfoScreen';
 import PaymentSettingsScreen from '../screens/settings/PaymentSettingsScreen';
+import KycScreen from '../screens/settings/KycScreen';
+import TwoFactorSettingsScreen from '../screens/settings/TwoFactorSettingsScreen';
+import ApiKeysScreen from '../screens/settings/ApiKeysScreen';
 
 // ── Typed param lists ─────────────────────────────────────────────────────────
 
@@ -41,6 +44,9 @@ export type SettingsStackParamList = {
   SettingsMenu: undefined;
   PersonalInfo: undefined;
   PaymentSettings: undefined;
+  KycVerification: undefined;
+  TwoFactorSettings: undefined;
+  ApiKeys: undefined;
 };
 
 // ── Stack navigators ──────────────────────────────────────────────────────────
@@ -79,6 +85,9 @@ function SettingsStackNavigator() {
       <SettingsStack.Screen name="SettingsMenu" component={SettingsScreen} options={{ title: 'Settings' }} />
       <SettingsStack.Screen name="PersonalInfo" component={PersonalInfoScreen} options={{ title: 'Personal Information' }} />
       <SettingsStack.Screen name="PaymentSettings" component={PaymentSettingsScreen} options={{ title: 'Payment Settings' }} />
+      <SettingsStack.Screen name="KycVerification" component={KycScreen} options={{ title: 'KYC Verification' }} />
+      <SettingsStack.Screen name="TwoFactorSettings" component={TwoFactorSettingsScreen} options={{ title: 'Two-Factor Authentication' }} />
+      <SettingsStack.Screen name="ApiKeys" component={ApiKeysScreen} options={{ title: 'API Keys' }} />
     </SettingsStack.Navigator>
   );
 }

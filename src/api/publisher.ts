@@ -113,3 +113,38 @@ export const updatePersonalInfo = (data: {
 export const updatePayoutSettings = (data: {
   payout_method: string; payout_details: Record<string, string>; currency?: string;
 }) => client.put('/publisher/profile/payout', data).then((r) => r.data);
+
+// ── KYC ───────────────────────────────────────────────────────────────────────
+export const getKyc = () =>
+  client.get('/publisher/kyc').then((r) => r.data);
+
+export const submitKyc = (formData: FormData) =>
+  client.post('/publisher/kyc', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((r) => r.data);
+
+// ── Two-Factor Auth ───────────────────────────────────────────────────────────
+export const getTwoFactor = () =>
+  client.get('/publisher/two-factor').then((r) => r.data);
+
+export const updateTwoFactor = (data: {
+  token_types: string[];
+  two_factor_phone?: string | null;
+  two_factor_email?: string | null;
+}) => client.put('/publisher/two-factor', data).then((r) => r.data);
+
+// ── API Keys ──────────────────────────────────────────────────────────────────
+export const getApiKeys = () =>
+  client.get('/publisher/api-keys').then((r) => r.data);
+
+export const createApiKey = (data: { name: string; permissions?: string[]; rate_limit_per_minute?: number }) =>
+  client.post('/publisher/api-keys', data).then((r) => r.data);
+
+export const revokeApiKey = (id: number) =>
+  client.post(`/publisher/api-keys/${id}/revoke`).then((r) => r.data);
+
+export const activateApiKey = (id: number) =>
+  client.post(`/publisher/api-keys/${id}/activate`).then((r) => r.data);
+
+export const deleteApiKey = (id: number) =>
+  client.delete(`/publisher/api-keys/${id}`).then((r) => r.data);
