@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
-import { getSites } from '../../api/publisher';
+import {
+  View, Text, FlatList, StyleSheet, ActivityIndicator,
+  TouchableOpacity, RefreshControl, Alert,
+} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SitesStackParamList } from '../../navigation/AppTabs';
+import { getSites, deleteSite } from '../../api/publisher';
 import { Site } from '../../types/publisher';
 
-const statusColor: Record<string, string> = { active: '#10b981', pending_review: '#f59e0b', suspended: '#ef4444' };
+type Props = NativeStackScreenProps<SitesStackParamList, 'SitesList'>;
 
-export default function SitesScreen() {
+const statusColor: Record<string, string> = {
+  active: '#10b981', pending_review: '#f59e0b', suspended: '#ef4444',
+};
+
+export default function SitesScreen({ navigation }: Props) {
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -18,17 +27,40 @@ export default function SitesScreen() {
     } finally { setLoading(false); setRefreshing(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const unsub = navigation.addListener('focus', () => load(true));
+    load();
+    return unsub;
+  }, [navigation]);
+
+  const confirmDelete = (id: number, name: string) =>
+    Alert.alert('Delete Site', `Delete "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          try { await deleteSite(id); load(true); }
+          catch { Alert.alert('Error', 'Failed to delete site.'); }
+        },
+      },
+    ]);
 
   if (loading) return <View style={s.center}><ActivityIndicator color="#6366f1" /></View>;
 
   return (
     <View style={s.container}>
-      <View style={s.header}><Text style={s.title}>My Sites</Text></View>
+      <View style={s.header}>
+        <Text style={s.title}>My Sites</Text>
+        <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('SiteForm', {})}>
+          <Text style={s.addBtnText}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={sites}
         keyExtractor={(item) => String(item.id)}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+        }
         renderItem={({ item }) => (
           <View style={s.item}>
             <View style={s.itemTop}>
@@ -43,11 +75,23 @@ export default function SitesScreen() {
               <Text style={s.stat}>Clicks: {item.clicks.toLocaleString()}</Text>
               <Text style={s.stat}>€{item.revenue.toFixed(2)}</Text>
             </View>
+            <View style={s.actions}>
+              <TouchableOpacity style={s.editBtn} onPress={() => navigation.navigate('SiteForm', { siteId: item.id })}>
+                <Text style={s.editBtnText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.deleteBtn} onPress={() => confirmDelete(item.id, item.name)}>
+                <Text style={s.deleteBtnText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         ListEmptyComponent={<Text style={s.empty}>No sites yet. Add your first website!</Text>}
         contentContainerStyle={{ paddingBottom: 24 }}
       />
+
+      <TouchableOpacity style={s.fab} onPress={() => navigation.navigate('AppsList')}>
+        <Text style={s.fabText}>📱 My Apps</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -55,8 +99,10 @@ export default function SitesScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  header: { backgroundColor: '#fff', padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700', color: '#111827' },
+  addBtn: { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   item: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
   itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   itemName: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1 },
@@ -65,5 +111,12 @@ const s = StyleSheet.create({
   domain: { fontSize: 13, color: '#9ca3af', marginBottom: 8 },
   stats: { flexDirection: 'row', gap: 12 },
   stat: { fontSize: 12, color: '#6b7280' },
+  actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  editBtn: { flex: 1, borderWidth: 1, borderColor: '#6366f1', borderRadius: 7, padding: 8, alignItems: 'center' },
+  editBtnText: { color: '#6366f1', fontWeight: '600', fontSize: 13 },
+  deleteBtn: { flex: 1, borderWidth: 1, borderColor: '#ef4444', borderRadius: 7, padding: 8, alignItems: 'center' },
+  deleteBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 13 },
   empty: { textAlign: 'center', marginTop: 60, color: '#9ca3af', fontSize: 15 },
+  fab: { position: 'absolute', bottom: 24, right: 20, backgroundColor: '#6366f1', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 12, elevation: 4 },
+  fabText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });

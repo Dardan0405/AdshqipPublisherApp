@@ -8,7 +8,7 @@ import TwoFactorScreen from '../screens/auth/TwoFactorScreen';
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
-  SecurityQuestion: { email: string };
+  SecurityQuestion: { email: string; question: string };
   TwoFactor: { email: string; method: string };
 };
 

@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SettingsStackParamList } from '../../navigation/AppTabs';
 import useAuthStore from '../../stores/authStore';
+
+type Props = NativeStackScreenProps<SettingsStackParamList, 'SettingsMenu'>;
 
 type MenuRow = { label: string; icon: string; onPress: () => void; danger?: boolean };
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }: Props) {
   const { user, logout } = useAuthStore();
 
   const confirmLogout = () =>
@@ -14,9 +18,8 @@ export default function SettingsScreen() {
     ]);
 
   const rows: MenuRow[] = [
-    { label: 'Personal Information', icon: '👤', onPress: () => {} },
-    { label: 'Company Information', icon: '🏢', onPress: () => {} },
-    { label: 'Payment Settings', icon: '💳', onPress: () => {} },
+    { label: 'Personal Information', icon: '👤', onPress: () => navigation.navigate('PersonalInfo') },
+    { label: 'Payment Settings', icon: '💳', onPress: () => navigation.navigate('PaymentSettings') },
     { label: 'Notification Settings', icon: '🔔', onPress: () => {} },
     { label: 'Two-Factor Authentication', icon: '🔐', onPress: () => {} },
     { label: 'API Keys', icon: '🔑', onPress: () => {} },

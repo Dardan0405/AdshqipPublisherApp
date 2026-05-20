@@ -99,3 +99,17 @@ export const requestPayout = (data: { amount: number; notes?: string }) =>
 // ── Referrals ─────────────────────────────────────────────────────────────────
 export const getReferrals = (page = 1) =>
   client.get('/publisher/referrals', { params: { page } }).then((r) => r.data);
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+export const getProfile = () =>
+  client.get('/publisher/profile').then((r) => r.data);
+
+export const updatePersonalInfo = (data: {
+  first_name: string; last_name: string; gender?: string;
+  date_of_birth?: string; mobile_number?: string;
+  city?: string; state_region?: string; country_code?: string; postal_code?: string;
+}) => client.put('/publisher/profile/personal', data).then((r) => r.data);
+
+export const updatePayoutSettings = (data: {
+  payout_method: string; payout_details: Record<string, string>; currency?: string;
+}) => client.put('/publisher/profile/payout', data).then((r) => r.data);
