@@ -9,6 +9,7 @@ import SiteFormScreen from '../screens/sites/SiteFormScreen';
 import AppsScreen from '../screens/apps/AppsScreen';
 import AppFormScreen from '../screens/apps/AppFormScreen';
 import AdBlocksScreen from '../screens/adblocks/AdBlocksScreen';
+import AdBlockFormScreen from '../screens/adblocks/AdBlockFormScreen';
 import ReportsScreen from '../screens/reports/ReportsScreen';
 import EarningsScreen from '../screens/earnings/EarningsScreen';
 import WalletScreen from '../screens/wallet/WalletScreen';
@@ -26,6 +27,7 @@ export type SitesStackParamList = {
   AppsList: undefined;
   AppForm: { appId?: number } | undefined;
   AdBlocks: undefined;
+  AdBlockForm: { adBlockId?: number } | undefined;
 };
 
 export type EarningsStackParamList = {
@@ -55,6 +57,7 @@ function SitesStackNavigator() {
       <SitesStack.Screen name="AppsList" component={AppsScreen} options={{ title: 'My Apps' }} />
       <SitesStack.Screen name="AppForm" component={AppFormScreen} options={{ title: '' }} />
       <SitesStack.Screen name="AdBlocks" component={AdBlocksScreen} options={{ title: 'Ad Blocks' }} />
+      <SitesStack.Screen name="AdBlockForm" component={AdBlockFormScreen} options={{ title: '' }} />
     </SitesStack.Navigator>
   );
 }
