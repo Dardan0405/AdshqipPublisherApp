@@ -83,7 +83,7 @@ export const getEarnings = (params?: { start_month?: string; end_month?: string;
   client.get('/publisher/earnings', { params }).then((r) => r.data);
 
 // ── Wallet ────────────────────────────────────────────────────────────────────
-export const getWallet = (params?: { start_date?: string; end_date?: string; type?: string }) =>
+export const getWallet = (params?: { start_date?: string; end_date?: string; type?: string; page?: number }) =>
   client.get('/publisher/wallet', { params }).then((r) => r.data);
 
 // ── Payouts ───────────────────────────────────────────────────────────────────

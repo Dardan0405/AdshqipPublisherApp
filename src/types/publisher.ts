@@ -144,6 +144,17 @@ export interface WalletSummary {
   this_month: number;
 }
 
+export interface WalletActivity {
+  date: string;
+  type: 'earning' | 'payout' | 'invoice';
+  type_label: string;
+  reference: string;
+  status: string;
+  credit: number;
+  debit: number;
+  net: number;
+}
+
 export interface ReferralStats {
   total_referral_income: number;
   total_advertiser_referrals: number;
