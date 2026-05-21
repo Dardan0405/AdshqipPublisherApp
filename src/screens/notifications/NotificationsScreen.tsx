@@ -6,6 +6,7 @@ import {
 import {
   getNotifications, markNotificationRead, markAllNotificationsRead,
 } from '../../api/publisher';
+import { useTheme, AppColors } from '../../theme';
 
 interface Notif {
   id: number;
@@ -20,6 +21,45 @@ const TYPE_ICON: Record<string, string> = {
   earning: '💰', payout: '💸', kyc: '📋', system: '⚙️', alert: '⚠️',
 };
 
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  topBar: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: c.card, paddingHorizontal: 16, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: c.borderLight,
+  },
+  topBarTxt: { fontSize: 13, color: c.textMuted },
+  markAllTxt: { fontSize: 13, color: c.primary, fontWeight: '600' },
+  empty: { alignItems: 'center', paddingVertical: 60 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTxt: { fontSize: 15, color: c.textLight },
+  loadMore: {
+    marginHorizontal: 16, marginBottom: 8, padding: 12,
+    backgroundColor: c.card, borderRadius: 10, alignItems: 'center',
+  },
+  loadMoreTxt: { color: c.primary, fontWeight: '600', fontSize: 14 },
+  item: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    backgroundColor: c.card, marginHorizontal: 16, marginTop: 8,
+    borderRadius: 12, padding: 14, elevation: 1,
+  },
+  itemUnread: { backgroundColor: c.primaryBg },
+  iconWrap: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: c.bg, justifyContent: 'center', alignItems: 'center',
+    marginRight: 12,
+  },
+  typeIcon: { fontSize: 16 },
+  itemBody: { flex: 1 },
+  itemTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 },
+  itemTitle: { flex: 1, fontSize: 14, color: c.textSub },
+  itemTitleBold: { fontWeight: '700', color: c.text },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.primary, marginLeft: 8 },
+  itemMsg: { fontSize: 13, color: c.textMuted, lineHeight: 18, marginBottom: 4 },
+  itemTime: { fontSize: 11, color: c.textLight },
+});
+
 export default function NotificationsScreen() {
   const [items, setItems] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +67,8 @@ export default function NotificationsScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = useCallback(async (pg = 1, silent = false) => {
     if (pg === 1 && !silent) setLoading(true);
@@ -63,7 +105,7 @@ export default function NotificationsScreen() {
   const unreadCount = items.filter((n) => !n.read_at).length;
 
   if (loading) {
-    return <View style={s.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+    return <View style={s.center}><ActivityIndicator size="large" color={c.primary} /></View>;
   }
 
   return (
@@ -75,7 +117,7 @@ export default function NotificationsScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => { setRefreshing(true); load(1, true); }}
-          tintColor="#6366f1"
+          tintColor={c.primary}
         />
       }
       ListHeaderComponent={
@@ -125,46 +167,3 @@ export default function NotificationsScreen() {
     />
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  topBar: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
-  },
-  topBarTxt: { fontSize: 13, color: '#6b7280' },
-  markAllTxt: { fontSize: 13, color: '#6366f1', fontWeight: '600' },
-
-  empty: { alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyTxt: { fontSize: 15, color: '#9ca3af' },
-
-  loadMore: {
-    marginHorizontal: 16, marginBottom: 8, padding: 12,
-    backgroundColor: '#fff', borderRadius: 10, alignItems: 'center',
-  },
-  loadMoreTxt: { color: '#6366f1', fontWeight: '600', fontSize: 14 },
-
-  item: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: '#fff', marginHorizontal: 16, marginTop: 8,
-    borderRadius: 12, padding: 14, elevation: 1,
-  },
-  itemUnread: { backgroundColor: '#eef2ff' },
-  iconWrap: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center',
-    marginRight: 12,
-  },
-  typeIcon: { fontSize: 16 },
-  itemBody: { flex: 1 },
-  itemTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 },
-  itemTitle: { flex: 1, fontSize: 14, color: '#374151' },
-  itemTitleBold: { fontWeight: '700', color: '#111827' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#6366f1', marginLeft: 8 },
-  itemMsg: { fontSize: 13, color: '#6b7280', lineHeight: 18, marginBottom: 4 },
-  itemTime: { fontSize: 11, color: '#9ca3af' },
-});

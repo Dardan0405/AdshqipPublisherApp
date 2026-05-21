@@ -7,10 +7,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SitesStackParamList } from '../../navigation/AppTabs';
 import { getSites, getApps, createAdBlock, updateAdBlock, getAdBlockTag } from '../../api/publisher';
 import { Site, App } from '../../types/publisher';
+import { useTheme, AppColors } from '../../theme';
 
 type Props = NativeStackScreenProps<SitesStackParamList, 'AdBlockForm'>;
-
-// ── Constants ─────────────────────────────────────────────────────────────────
 
 const FORMATS = [
   { key: 'display_web',   label: 'Display Web' },
@@ -48,11 +47,62 @@ const PLACEMENTS = [
   'overlay', 'interstitial', 'push', 'popup',
 ];
 
-// ── Screen ────────────────────────────────────────────────────────────────────
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { padding: 24, paddingTop: 32 },
+  title: { fontSize: 22, fontWeight: '700', color: c.text, marginBottom: 28 },
+  label: { fontSize: 13, fontWeight: '600', color: c.textSub, marginBottom: 8 },
+  hint: { fontSize: 13, color: c.textLight, marginBottom: 16, fontStyle: 'italic' },
+  spacer: { height: 12 },
+  input: {
+    borderWidth: 1, borderColor: c.border, borderRadius: 10,
+    padding: 14, marginBottom: 20, fontSize: 15,
+    color: c.text, backgroundColor: c.card,
+  },
+  toggleRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  toggleBtn: {
+    flex: 1, paddingVertical: 11, borderRadius: 10,
+    borderWidth: 1, borderColor: c.border,
+    backgroundColor: c.card, alignItems: 'center',
+  },
+  toggleBtnActive: { backgroundColor: c.primary, borderColor: c.primary },
+  toggleTxt: { fontSize: 14, fontWeight: '600', color: c.textSub },
+  toggleTxtActive: { color: '#fff' },
+  selectorCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: c.card, borderRadius: 10, padding: 14,
+    marginBottom: 8, borderWidth: 1, borderColor: c.border,
+  },
+  selectorCardActive: { borderColor: c.primary, backgroundColor: c.primaryBg },
+  selectorDot: {
+    width: 20, height: 20, borderRadius: 10,
+    borderWidth: 2, borderColor: c.border,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  selectorDotInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.primary },
+  selectorName: { fontSize: 14, fontWeight: '600', color: c.textSub },
+  selectorNameActive: { color: c.primary },
+  selectorSub: { fontSize: 12, color: c.textLight, marginTop: 1 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    borderWidth: 1, borderColor: c.border, backgroundColor: c.card,
+  },
+  chipActive: { backgroundColor: c.primary, borderColor: c.primary },
+  chipTxt: { fontSize: 13, color: c.textSub, fontWeight: '500' },
+  chipTxtActive: { color: '#fff', fontWeight: '600' },
+  saveBtn: {
+    backgroundColor: c.primary, borderRadius: 10,
+    padding: 16, alignItems: 'center', marginTop: 12,
+  },
+  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  cancelBtn: { marginTop: 16, alignItems: 'center', marginBottom: 8 },
+  cancelTxt: { fontSize: 15, color: c.textMuted },
+});
 
 export default function AdBlockFormScreen({ route, navigation }: Props) {
   const editId = route.params?.adBlockId;
-
   const [chooseType, setChooseType] = useState<'web' | 'app'>('web');
   const [sites, setSites] = useState<Site[]>([]);
   const [apps, setApps] = useState<App[]>([]);
@@ -65,8 +115,9 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
   const [status, setStatus] = useState<'active' | 'paused'>('active');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
-  // Load sites + apps first
   useEffect(() => {
     (async () => {
       try {
@@ -87,7 +138,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
     })();
   }, []);
 
-  // Load existing zone data when editing
   useEffect(() => {
     if (!editId) return;
     getAdBlockTag(editId)
@@ -107,7 +157,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
       .finally(() => setFetching(false));
   }, [editId]);
 
-  // Reset size to first option when format changes
   const handleFormatChange = (fmt: string) => {
     setFormat(fmt);
     const sizes = FORMAT_SIZES[fmt] ?? [];
@@ -153,7 +202,7 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
   };
 
   if (fetching) {
-    return <View style={s.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+    return <View style={s.center}><ActivityIndicator size="large" color={c.primary} /></View>;
   }
 
   const currentSizes = FORMAT_SIZES[format] ?? [];
@@ -163,7 +212,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
         <Text style={s.title}>{editId ? 'Edit Ad Block' : 'New Ad Block'}</Text>
 
-        {/* Type toggle */}
         <Text style={s.label}>Type</Text>
         <View style={s.toggleRow}>
           {(['web', 'app'] as const).map((t) => (
@@ -179,7 +227,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           ))}
         </View>
 
-        {/* Site selector */}
         {chooseType === 'web' && (
           <>
             <Text style={s.label}>Site</Text>
@@ -208,7 +255,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           </>
         )}
 
-        {/* App selector */}
         {chooseType === 'app' && (
           <>
             <Text style={s.label}>App</Text>
@@ -237,17 +283,15 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           </>
         )}
 
-        {/* Name */}
         <Text style={s.label}>Ad Block Name</Text>
         <TextInput
           style={s.input}
           placeholder="Sidebar Banner"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={c.textLight}
           value={name}
           onChangeText={setName}
         />
 
-        {/* Format */}
         <Text style={s.label}>Format</Text>
         <View style={s.chipRow}>
           {FORMATS.map((f) => (
@@ -261,7 +305,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           ))}
         </View>
 
-        {/* Size */}
         {currentSizes.length > 0 && (
           <>
             <Text style={s.label}>Size / Type</Text>
@@ -279,7 +322,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           </>
         )}
 
-        {/* Placement */}
         <Text style={s.label}>Placement</Text>
         <View style={s.chipRow}>
           {PLACEMENTS.map((p) => (
@@ -295,7 +337,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           ))}
         </View>
 
-        {/* Status */}
         <Text style={s.label}>Status</Text>
         <View style={s.toggleRow}>
           {(['active', 'paused'] as const).map((st) => (
@@ -311,7 +352,6 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
           ))}
         </View>
 
-        {/* Save */}
         <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={loading}>
           {loading
             ? <ActivityIndicator color="#fff" />
@@ -325,66 +365,3 @@ export default function AdBlockFormScreen({ route, navigation }: Props) {
     </KeyboardAvoidingView>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const s = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { padding: 24, paddingTop: 32 },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 28 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  hint: { fontSize: 13, color: '#9ca3af', marginBottom: 16, fontStyle: 'italic' },
-  spacer: { height: 12 },
-
-  input: {
-    borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10,
-    padding: 14, marginBottom: 20, fontSize: 15,
-    color: '#111827', backgroundColor: '#fff',
-  },
-
-  toggleRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  toggleBtn: {
-    flex: 1, paddingVertical: 11, borderRadius: 10,
-    borderWidth: 1, borderColor: '#d1d5db',
-    backgroundColor: '#fff', alignItems: 'center',
-  },
-  toggleBtnActive: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
-  toggleTxt: { fontSize: 14, fontWeight: '600', color: '#374151' },
-  toggleTxtActive: { color: '#fff' },
-
-  selectorCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#fff', borderRadius: 10, padding: 14,
-    marginBottom: 8, borderWidth: 1, borderColor: '#e5e7eb',
-  },
-  selectorCardActive: { borderColor: '#6366f1', backgroundColor: '#eef2ff' },
-  selectorDot: {
-    width: 20, height: 20, borderRadius: 10,
-    borderWidth: 2, borderColor: '#d1d5db',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  selectorDotInner: {
-    width: 10, height: 10, borderRadius: 5, backgroundColor: '#6366f1',
-  },
-  selectorName: { fontSize: 14, fontWeight: '600', color: '#374151' },
-  selectorNameActive: { color: '#6366f1' },
-  selectorSub: { fontSize: 12, color: '#9ca3af', marginTop: 1 },
-
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  chip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#fff',
-  },
-  chipActive: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
-  chipTxt: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  chipTxtActive: { color: '#fff', fontWeight: '600' },
-
-  saveBtn: {
-    backgroundColor: '#6366f1', borderRadius: 10,
-    padding: 16, alignItems: 'center', marginTop: 12,
-  },
-  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  cancelBtn: { marginTop: 16, alignItems: 'center', marginBottom: 8 },
-  cancelTxt: { fontSize: 15, color: '#6b7280' },
-});

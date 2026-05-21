@@ -1,12 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { getEarnings } from '../../api/publisher';
+import { useTheme, AppColors } from '../../theme';
+
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { backgroundColor: c.card, padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: c.borderLight },
+  title: { fontSize: 20, fontWeight: '700', color: c.text },
+  total: { fontSize: 14, color: c.textMuted, marginTop: 4 },
+  item: { backgroundColor: c.card, marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
+  itemTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  month: { fontSize: 15, fontWeight: '700', color: c.text },
+  amount: { fontSize: 15, fontWeight: '700', color: c.primary },
+  day: { fontSize: 12, color: c.textMuted, marginBottom: 2 },
+  more: { fontSize: 11, color: c.textLight, marginTop: 4 },
+  empty: { textAlign: 'center', marginTop: 60, color: c.textLight, fontSize: 15 },
+});
 
 export default function EarningsScreen() {
   const [months, setMonths] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -16,7 +34,7 @@ export default function EarningsScreen() {
 
   useEffect(() => { load(); }, []);
 
-  if (loading) return <View style={s.center}><ActivityIndicator color="#6366f1" /></View>;
+  if (loading) return <View style={s.center}><ActivityIndicator color={c.primary} /></View>;
 
   return (
     <View style={s.container}>
@@ -27,7 +45,7 @@ export default function EarningsScreen() {
       <FlatList
         data={months}
         keyExtractor={(item) => item.month}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />}
         renderItem={({ item }) => (
           <View style={s.item}>
             <View style={s.itemTop}>
@@ -48,18 +66,3 @@ export default function EarningsScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  total: { fontSize: 14, color: '#6b7280', marginTop: 4 },
-  item: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
-  itemTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  month: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  amount: { fontSize: 15, fontWeight: '700', color: '#6366f1' },
-  day: { fontSize: 12, color: '#6b7280', marginBottom: 2 },
-  more: { fontSize: 11, color: '#9ca3af', marginTop: 4 },
-  empty: { textAlign: 'center', marginTop: 60, color: '#9ca3af', fontSize: 15 },
-});

@@ -6,11 +6,41 @@ import {
 } from 'react-native';
 import { getPayouts, requestPayout, getWallet } from '../../api/publisher';
 import { Payout } from '../../types/publisher';
+import { useTheme, AppColors } from '../../theme';
 
 const statusColor: Record<string, string> = {
   pending: '#f59e0b', approved: '#3b82f6', paid: '#10b981',
   rejected: '#ef4444', cancelled: '#9ca3af',
 };
+
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { backgroundColor: c.card, padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: c.borderLight, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 20, fontWeight: '700', color: c.text },
+  balance: { fontSize: 13, color: c.textMuted, marginTop: 2 },
+  requestBtn: { backgroundColor: c.primary, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 9 },
+  requestBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  item: { backgroundColor: c.card, marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
+  itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  amount: { fontSize: 18, fontWeight: '700', color: c.text },
+  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  badgeText: { fontSize: 11, color: '#fff', fontWeight: '600' },
+  method: { fontSize: 13, color: c.textMuted },
+  date: { fontSize: 12, color: c.textLight, marginTop: 2 },
+  invoice: { fontSize: 12, color: c.textLight, marginTop: 2 },
+  empty: { textAlign: 'center', marginTop: 60, color: c.textLight, fontSize: 15 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modal: { backgroundColor: c.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: c.text, marginBottom: 4 },
+  modalBalance: { fontSize: 13, color: c.textMuted, marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: '600', color: c.textSub, marginBottom: 6 },
+  input: { borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 15, color: c.text, backgroundColor: c.input },
+  btn: { backgroundColor: c.primary, borderRadius: 10, padding: 15, alignItems: 'center', marginTop: 4 },
+  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  cancelBtn: { marginTop: 14, alignItems: 'center' },
+  cancelText: { fontSize: 15, color: c.textMuted },
+});
 
 export default function PayoutsScreen() {
   const [payouts, setPayouts] = useState<Payout[]>([]);
@@ -21,6 +51,8 @@ export default function PayoutsScreen() {
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -59,7 +91,7 @@ export default function PayoutsScreen() {
     }
   };
 
-  if (loading) return <View style={s.center}><ActivityIndicator color="#6366f1" /></View>;
+  if (loading) return <View style={s.center}><ActivityIndicator color={c.primary} /></View>;
 
   return (
     <View style={s.container}>
@@ -79,7 +111,7 @@ export default function PayoutsScreen() {
         data={payouts}
         keyExtractor={(item) => String(item.id)}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
         }
         renderItem={({ item }) => (
           <View style={s.item}>
@@ -110,7 +142,7 @@ export default function PayoutsScreen() {
             <TextInput
               style={s.input}
               placeholder="0.00"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textLight}
               keyboardType="decimal-pad"
               value={amount}
               onChangeText={setAmount}
@@ -120,7 +152,7 @@ export default function PayoutsScreen() {
             <TextInput
               style={[s.input, { height: 80 }]}
               placeholder="Any notes for this payout..."
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={c.textLight}
               multiline
               value={notes}
               onChangeText={setNotes}
@@ -138,32 +170,3 @@ export default function PayoutsScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  balance: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  requestBtn: { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 9 },
-  requestBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  item: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
-  itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  amount: { fontSize: 18, fontWeight: '700', color: '#111827' },
-  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { fontSize: 11, color: '#fff', fontWeight: '600' },
-  method: { fontSize: 13, color: '#6b7280' },
-  date: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
-  invoice: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
-  empty: { textAlign: 'center', marginTop: 60, color: '#9ca3af', fontSize: 15 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  modalBalance: { fontSize: 13, color: '#6b7280', marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 15, color: '#111827', backgroundColor: '#fafafa' },
-  btn: { backgroundColor: '#6366f1', borderRadius: 10, padding: 15, alignItems: 'center', marginTop: 4 },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  cancelBtn: { marginTop: 14, alignItems: 'center' },
-  cancelText: { fontSize: 15, color: '#6b7280' },
-});

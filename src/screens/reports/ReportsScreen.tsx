@@ -10,15 +10,11 @@ import {
 import {
   ReportOverviewRow, GeoReportRow, SiteReportRow, AppReportRow,
 } from '../../types/publisher';
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { useTheme, AppColors } from '../../theme';
 
 type Tab = 'overview' | 'geo' | 'sites' | 'apps';
 type Preset = '7d' | '30d' | 'mtd' | 'last';
-
 interface DateRange { start: string; end: string }
-
-// ── Date helpers ──────────────────────────────────────────────────────────────
 
 function getDateRange(preset: Preset): DateRange {
   const now = new Date();
@@ -52,9 +48,50 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'apps',     label: 'Apps' },
 ];
 
-// ── Summary chip ──────────────────────────────────────────────────────────────
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 },
+  empty: { textAlign: 'center', marginTop: 60, color: c.textLight, fontSize: 15 },
+  tabBar: { backgroundColor: c.card, borderBottomWidth: 1, borderBottomColor: c.borderLight },
+  tabBarContent: { paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
+  tabBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: c.bg },
+  tabBtnActive: { backgroundColor: c.primary },
+  tabText: { fontSize: 13, fontWeight: '600', color: c.textMuted },
+  tabTextActive: { color: '#fff' },
+  presetRow: {
+    flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: c.card, borderBottomWidth: 1, borderBottomColor: c.borderLight,
+  },
+  presetChip: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 16, borderWidth: 1, borderColor: c.border },
+  presetChipActive: { borderColor: c.primary, backgroundColor: c.primaryBg },
+  presetText: { fontSize: 12, fontWeight: '600', color: c.textMuted },
+  presetTextActive: { color: c.primary },
+  summaryRow: {
+    flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: c.card, flexWrap: 'wrap',
+  },
+  chip: { backgroundColor: c.bg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  chipLabel: { fontSize: 10, color: c.textLight, marginBottom: 1 },
+  chipValue: { fontSize: 13, fontWeight: '700', color: c.textSub },
+  tableHeader: {
+    flexDirection: 'row', backgroundColor: c.card,
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: c.border,
+    marginTop: 8,
+  },
+  col: { flex: 1, fontSize: 11, fontWeight: '700', color: c.textMuted, textTransform: 'uppercase' },
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: c.card, paddingHorizontal: 16, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: c.borderLight,
+  },
+  cell: { flex: 1, fontSize: 13, color: c.textSub },
+  cellSub: { fontSize: 11, color: c.textLight, marginTop: 1 },
+});
 
-function SummaryChips({ items }: { items: { label: string; value: string }[] }) {
+type S = ReturnType<typeof makeStyles>;
+
+function SummaryChips({ items, s }: { items: { label: string; value: string }[]; s: S }) {
   return (
     <View style={s.summaryRow}>
       {items.map((it) => (
@@ -67,9 +104,7 @@ function SummaryChips({ items }: { items: { label: string; value: string }[] }) 
   );
 }
 
-// ── Table headers ─────────────────────────────────────────────────────────────
-
-function OverviewHeader() {
+function OverviewHeader({ s }: { s: S }) {
   return (
     <View style={s.tableHeader}>
       <Text style={[s.col, { flex: 2 }]}>Date</Text>
@@ -81,7 +116,7 @@ function OverviewHeader() {
   );
 }
 
-function GeoHeader() {
+function GeoHeader({ s }: { s: S }) {
   return (
     <View style={s.tableHeader}>
       <Text style={[s.col, { flex: 2 }]}>Country</Text>
@@ -93,7 +128,7 @@ function GeoHeader() {
   );
 }
 
-function SitesHeader() {
+function SitesHeader({ s }: { s: S }) {
   return (
     <View style={s.tableHeader}>
       <Text style={[s.col, { flex: 3 }]}>Site</Text>
@@ -104,7 +139,7 @@ function SitesHeader() {
   );
 }
 
-function AppsHeader() {
+function AppsHeader({ s }: { s: S }) {
   return (
     <View style={s.tableHeader}>
       <Text style={[s.col, { flex: 3 }]}>App</Text>
@@ -115,9 +150,7 @@ function AppsHeader() {
   );
 }
 
-// ── Row renderers ─────────────────────────────────────────────────────────────
-
-function OverviewRow({ item }: { item: ReportOverviewRow }) {
+function OverviewRow({ item, s }: { item: ReportOverviewRow; s: S }) {
   return (
     <View style={s.row}>
       <Text style={[s.cell, { flex: 2 }]}>{item.date}</Text>
@@ -129,7 +162,7 @@ function OverviewRow({ item }: { item: ReportOverviewRow }) {
   );
 }
 
-function GeoRow({ item }: { item: GeoReportRow }) {
+function GeoRow({ item, s }: { item: GeoReportRow; s: S }) {
   return (
     <View style={s.row}>
       <Text style={[s.cell, { flex: 2 }]}>{item.country_code || '—'}</Text>
@@ -141,7 +174,7 @@ function GeoRow({ item }: { item: GeoReportRow }) {
   );
 }
 
-function SiteRow({ item }: { item: SiteReportRow }) {
+function SiteRow({ item, s }: { item: SiteReportRow; s: S }) {
   return (
     <View style={s.row}>
       <View style={[{ flex: 3 }]}>
@@ -155,7 +188,7 @@ function SiteRow({ item }: { item: SiteReportRow }) {
   );
 }
 
-function AppRow({ item }: { item: AppReportRow }) {
+function AppRow({ item, s }: { item: AppReportRow; s: S }) {
   return (
     <View style={s.row}>
       <Text style={[s.cell, { flex: 3, fontWeight: '600' }]} numberOfLines={1}>{item.app_name}</Text>
@@ -166,15 +199,12 @@ function AppRow({ item }: { item: AppReportRow }) {
   );
 }
 
-// ── Main screen ───────────────────────────────────────────────────────────────
-
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<Tab>('overview');
   const [preset, setPreset] = useState<Preset>('30d');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [overviewRows, setOverviewRows] = useState<ReportOverviewRow[]>([]);
   const [overviewSummary, setOverviewSummary] = useState<{
     total_impressions: number; total_clicks: number;
@@ -183,6 +213,8 @@ export default function ReportsScreen() {
   const [geoRows, setGeoRows] = useState<GeoReportRow[]>([]);
   const [siteRows, setSiteRows] = useState<SiteReportRow[]>([]);
   const [appRows, setAppRows] = useState<AppReportRow[]>([]);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -221,7 +253,6 @@ export default function ReportsScreen() {
 
   const renderHeader = () => (
     <>
-      {/* Tab bar */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -239,7 +270,6 @@ export default function ReportsScreen() {
         ))}
       </ScrollView>
 
-      {/* Date range chips */}
       <View style={s.presetRow}>
         {PRESETS.map((p) => (
           <TouchableOpacity
@@ -252,9 +282,8 @@ export default function ReportsScreen() {
         ))}
       </View>
 
-      {/* Summary chips */}
       {tab === 'overview' && overviewSummary && (
-        <SummaryChips items={[
+        <SummaryChips s={s} items={[
           { label: 'Imp', value: overviewSummary.total_impressions.toLocaleString() },
           { label: 'Clk', value: overviewSummary.total_clicks.toLocaleString() },
           { label: 'Earn', value: `€${overviewSummary.total_earnings.toFixed(2)}` },
@@ -262,12 +291,11 @@ export default function ReportsScreen() {
         ]} />
       )}
 
-      {/* Table column header */}
       {!loading && (
-        tab === 'overview' ? <OverviewHeader />
-        : tab === 'geo'    ? <GeoHeader />
-        : tab === 'sites'  ? <SitesHeader />
-        :                    <AppsHeader />
+        tab === 'overview' ? <OverviewHeader s={s} />
+        : tab === 'geo'    ? <GeoHeader s={s} />
+        : tab === 'sites'  ? <SitesHeader s={s} />
+        :                    <AppsHeader s={s} />
       )}
     </>
   );
@@ -276,7 +304,7 @@ export default function ReportsScreen() {
     return (
       <View style={s.container}>
         {renderHeader()}
-        <View style={s.center}><ActivityIndicator color="#6366f1" /></View>
+        <View style={s.center}><ActivityIndicator color={c.primary} /></View>
       </View>
     );
   }
@@ -288,10 +316,10 @@ export default function ReportsScreen() {
           data={overviewRows}
           keyExtractor={(item) => item.date}
           ListHeaderComponent={renderHeader}
-          renderItem={({ item }) => <OverviewRow item={item} />}
+          renderItem={({ item }) => <OverviewRow item={item} s={s} />}
           ListEmptyComponent={<Text style={s.empty}>No data for this period.</Text>}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
           }
           contentContainerStyle={{ paddingBottom: 32 }}
         />
@@ -306,10 +334,10 @@ export default function ReportsScreen() {
           data={geoRows}
           keyExtractor={(item) => item.country_code ?? Math.random().toString()}
           ListHeaderComponent={renderHeader}
-          renderItem={({ item }) => <GeoRow item={item} />}
+          renderItem={({ item }) => <GeoRow item={item} s={s} />}
           ListEmptyComponent={<Text style={s.empty}>No geo data for this period.</Text>}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
           }
           contentContainerStyle={{ paddingBottom: 32 }}
         />
@@ -324,10 +352,10 @@ export default function ReportsScreen() {
           data={siteRows}
           keyExtractor={(item) => String(item.site_id)}
           ListHeaderComponent={renderHeader}
-          renderItem={({ item }) => <SiteRow item={item} />}
+          renderItem={({ item }) => <SiteRow item={item} s={s} />}
           ListEmptyComponent={<Text style={s.empty}>No site data for this period.</Text>}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
           }
           contentContainerStyle={{ paddingBottom: 32 }}
         />
@@ -341,70 +369,13 @@ export default function ReportsScreen() {
         data={appRows}
         keyExtractor={(item) => String(item.mobile_app_id)}
         ListHeaderComponent={renderHeader}
-        renderItem={({ item }) => <AppRow item={item} />}
+        renderItem={({ item }) => <AppRow item={item} s={s} />}
         ListEmptyComponent={<Text style={s.empty}>No app data for this period.</Text>}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
         }
         contentContainerStyle={{ paddingBottom: 32 }}
       />
     </View>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 },
-  empty: { textAlign: 'center', marginTop: 60, color: '#9ca3af', fontSize: 15 },
-
-  tabBar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  tabBarContent: { paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
-  tabBtn: {
-    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-  },
-  tabBtnActive: { backgroundColor: '#6366f1' },
-  tabText: { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  tabTextActive: { color: '#fff' },
-
-  presetRow: {
-    flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
-  },
-  presetChip: {
-    paddingHorizontal: 14, paddingVertical: 5, borderRadius: 16,
-    borderWidth: 1, borderColor: '#e5e7eb',
-  },
-  presetChipActive: { borderColor: '#6366f1', backgroundColor: '#eef2ff' },
-  presetText: { fontSize: 12, fontWeight: '600', color: '#6b7280' },
-  presetTextActive: { color: '#6366f1' },
-
-  summaryRow: {
-    flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#fff', flexWrap: 'wrap',
-  },
-  chip: {
-    backgroundColor: '#f3f4f6', borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 6,
-  },
-  chipLabel: { fontSize: 10, color: '#9ca3af', marginBottom: 1 },
-  chipValue: { fontSize: 13, fontWeight: '700', color: '#374151' },
-
-  tableHeader: {
-    flexDirection: 'row', backgroundColor: '#fff',
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
-    marginTop: 8,
-  },
-  col: { flex: 1, fontSize: 11, fontWeight: '700', color: '#6b7280', textTransform: 'uppercase' },
-
-  row: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#f9fafb',
-  },
-  cell: { flex: 1, fontSize: 13, color: '#374151' },
-  cellSub: { fontSize: 11, color: '#9ca3af', marginTop: 1 },
-});

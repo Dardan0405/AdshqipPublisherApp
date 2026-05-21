@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SitesStackParamList } from '../../navigation/AppTabs';
 import { getSites, deleteSite } from '../../api/publisher';
 import { Site } from '../../types/publisher';
+import { useTheme, AppColors } from '../../theme';
 
 type Props = NativeStackScreenProps<SitesStackParamList, 'SitesList'>;
 
@@ -14,10 +15,37 @@ const statusColor: Record<string, string> = {
   active: '#10b981', pending_review: '#f59e0b', suspended: '#ef4444',
 };
 
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { backgroundColor: c.card, padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: c.borderLight, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 20, fontWeight: '700', color: c.text },
+  addBtn: { backgroundColor: c.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  item: { backgroundColor: c.card, marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
+  itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  itemName: { fontSize: 15, fontWeight: '600', color: c.text, flex: 1 },
+  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  badgeText: { fontSize: 11, color: '#fff', fontWeight: '600' },
+  domain: { fontSize: 13, color: c.textLight, marginBottom: 8 },
+  stats: { flexDirection: 'row', gap: 12 },
+  stat: { fontSize: 12, color: c.textMuted },
+  actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  editBtn: { flex: 1, borderWidth: 1, borderColor: c.primary, borderRadius: 7, padding: 8, alignItems: 'center' },
+  editBtnText: { color: c.primary, fontWeight: '600', fontSize: 13 },
+  deleteBtn: { flex: 1, borderWidth: 1, borderColor: c.danger, borderRadius: 7, padding: 8, alignItems: 'center' },
+  deleteBtnText: { color: c.danger, fontWeight: '600', fontSize: 13 },
+  empty: { textAlign: 'center', marginTop: 60, color: c.textLight, fontSize: 15 },
+  fab: { position: 'absolute', bottom: 24, right: 20, backgroundColor: c.primary, borderRadius: 24, paddingHorizontal: 18, paddingVertical: 12, elevation: 4 },
+  fabText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+});
+
 export default function SitesScreen({ navigation }: Props) {
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -44,7 +72,7 @@ export default function SitesScreen({ navigation }: Props) {
       },
     ]);
 
-  if (loading) return <View style={s.center}><ActivityIndicator color="#6366f1" /></View>;
+  if (loading) return <View style={s.center}><ActivityIndicator color={c.primary} /></View>;
 
   return (
     <View style={s.container}>
@@ -59,7 +87,7 @@ export default function SitesScreen({ navigation }: Props) {
         data={sites}
         keyExtractor={(item) => String(item.id)}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
         }
         renderItem={({ item }) => (
           <View style={s.item}>
@@ -95,28 +123,3 @@ export default function SitesScreen({ navigation }: Props) {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#fff', padding: 20, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  addBtn: { backgroundColor: '#6366f1', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  item: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 12, padding: 16, elevation: 1 },
-  itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1 },
-  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { fontSize: 11, color: '#fff', fontWeight: '600' },
-  domain: { fontSize: 13, color: '#9ca3af', marginBottom: 8 },
-  stats: { flexDirection: 'row', gap: 12 },
-  stat: { fontSize: 12, color: '#6b7280' },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  editBtn: { flex: 1, borderWidth: 1, borderColor: '#6366f1', borderRadius: 7, padding: 8, alignItems: 'center' },
-  editBtnText: { color: '#6366f1', fontWeight: '600', fontSize: 13 },
-  deleteBtn: { flex: 1, borderWidth: 1, borderColor: '#ef4444', borderRadius: 7, padding: 8, alignItems: 'center' },
-  deleteBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 13 },
-  empty: { textAlign: 'center', marginTop: 60, color: '#9ca3af', fontSize: 15 },
-  fab: { position: 'absolute', bottom: 24, right: 20, backgroundColor: '#6366f1', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 12, elevation: 4 },
-  fabText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-});

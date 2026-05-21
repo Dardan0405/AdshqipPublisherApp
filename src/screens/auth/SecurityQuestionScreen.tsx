@@ -4,20 +4,35 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { verifySecurityQuestion } from '../../api/auth';
 import useAuthStore from '../../stores/authStore';
+import { useTheme, AppColors } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SecurityQuestion'>;
+
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg, justifyContent: 'center', paddingHorizontal: 24 },
+  card: { backgroundColor: c.card, borderRadius: 16, padding: 28, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
+  logo: { fontSize: 24, fontWeight: '800', color: c.primary, textAlign: 'center', marginBottom: 16 },
+  title: { fontSize: 20, fontWeight: '700', color: c.text, textAlign: 'center', marginBottom: 8 },
+  question: { fontSize: 15, fontStyle: 'italic', color: c.textSub, textAlign: 'center', marginBottom: 8 },
+  hint: { fontSize: 13, color: c.textMuted, textAlign: 'center', marginBottom: 24 },
+  label: { fontSize: 13, fontWeight: '600', color: c.textSub, marginBottom: 6 },
+  input: { borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 15, color: c.text, backgroundColor: c.input },
+  btn: { backgroundColor: c.primary, borderRadius: 10, padding: 15, alignItems: 'center' },
+  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  linkWrap: { marginTop: 20, alignItems: 'center' },
+  link: { fontSize: 14, color: c.primary },
+});
 
 export default function SecurityQuestionScreen({ route, navigation }: Props) {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((s) => s.setAuth);
   const { email, question } = route.params;
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const handleVerify = async () => {
-    if (!answer.trim()) {
-      Alert.alert('Error', 'Please enter your answer.');
-      return;
-    }
+    if (!answer.trim()) { Alert.alert('Error', 'Please enter your answer.'); return; }
     setLoading(true);
     try {
       const data = await verifySecurityQuestion({ email, answer: answer.trim() });
@@ -43,16 +58,9 @@ export default function SecurityQuestionScreen({ route, navigation }: Props) {
         <Text style={s.hint}>Please answer your security question to continue.</Text>
 
         <Text style={s.label}>Your Answer</Text>
-        <TextInput
-          style={s.input}
-          placeholder="Enter answer"
-          placeholderTextColor="#9ca3af"
-          autoCapitalize="none"
-          value={answer}
-          onChangeText={setAnswer}
-          onSubmitEditing={handleVerify}
-          returnKeyType="go"
-        />
+        <TextInput style={s.input} placeholder="Enter answer" placeholderTextColor={c.textLight}
+          autoCapitalize="none" value={answer} onChangeText={setAnswer}
+          onSubmitEditing={handleVerify} returnKeyType="go" />
 
         <TouchableOpacity style={s.btn} onPress={handleVerify} disabled={loading}>
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Verify</Text>}
@@ -65,18 +73,3 @@ export default function SecurityQuestionScreen({ route, navigation }: Props) {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6', justifyContent: 'center', paddingHorizontal: 24 },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 28, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
-  logo: { fontSize: 24, fontWeight: '800', color: '#6366f1', textAlign: 'center', marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 8 },
-  question: { fontSize: 15, fontStyle: 'italic', color: '#374151', textAlign: 'center', marginBottom: 8 },
-  hint: { fontSize: 13, color: '#6b7280', textAlign: 'center', marginBottom: 24 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 15, color: '#111827', backgroundColor: '#fafafa' },
-  btn: { backgroundColor: '#6366f1', borderRadius: 10, padding: 15, alignItems: 'center' },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  linkWrap: { marginTop: 20, alignItems: 'center' },
-  link: { fontSize: 14, color: '#6366f1' },
-});

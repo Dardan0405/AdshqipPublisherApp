@@ -8,10 +8,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SitesStackParamList } from '../../navigation/AppTabs';
 import { getAdBlocks, deleteAdBlock, getAdBlockTag } from '../../api/publisher';
 import { AdBlock } from '../../types/publisher';
+import { useTheme, AppColors } from '../../theme';
 
 type Props = NativeStackScreenProps<SitesStackParamList, 'AdBlocks'>;
-
-// ── Status badge ──────────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, string> = {
   active: '#10b981', paused: '#f59e0b', archived: '#6b7280',
@@ -31,16 +30,15 @@ const sb = StyleSheet.create({
   text: { fontSize: 11, fontWeight: '700', textTransform: 'capitalize' },
 });
 
-// ── Embed code modal ──────────────────────────────────────────────────────────
-
 interface TagModalProps {
   visible: boolean;
   adBlockName: string;
   jsCode: string;
   onClose: () => void;
+  c: AppColors;
 }
 
-function TagModal({ visible, adBlockName, jsCode, onClose }: TagModalProps) {
+function TagModal({ visible, adBlockName, jsCode, onClose, c }: TagModalProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -56,9 +54,9 @@ function TagModal({ visible, adBlockName, jsCode, onClose }: TagModalProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
       <View style={m.overlay}>
-        <View style={m.sheet}>
-          <Text style={m.title}>Embed Code</Text>
-          <Text style={m.sub}>{adBlockName}</Text>
+        <View style={[m.sheet, { backgroundColor: c.card }]}>
+          <Text style={[m.title, { color: c.text }]}>Embed Code</Text>
+          <Text style={[m.sub, { color: c.textLight }]}>{adBlockName}</Text>
 
           <ScrollView style={m.codeBox} nestedScrollEnabled>
             <Text style={m.code} selectable>{jsCode}</Text>
@@ -68,13 +66,13 @@ function TagModal({ visible, adBlockName, jsCode, onClose }: TagModalProps) {
             <TouchableOpacity style={[m.btn, m.copyBtn]} onPress={handleCopy}>
               <Text style={m.copyTxt}>{copied ? 'Copied!' : 'Copy'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[m.btn, m.shareBtn]} onPress={handleShare}>
-              <Text style={m.shareTxt}>Share</Text>
+            <TouchableOpacity style={[m.btn, { backgroundColor: c.bg, borderWidth: 1, borderColor: c.border }]} onPress={handleShare}>
+              <Text style={[m.shareTxt, { color: c.textSub }]}>Share</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={m.closeBtn} onPress={onClose}>
-            <Text style={m.closeTxt}>Close</Text>
+            <Text style={[m.closeTxt, { color: c.textLight }]}>Close</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -83,32 +81,55 @@ function TagModal({ visible, adBlockName, jsCode, onClose }: TagModalProps) {
 }
 
 const m = StyleSheet.create({
-  overlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 24, paddingBottom: 40, maxHeight: '80%',
-  },
-  title: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  sub: { fontSize: 13, color: '#9ca3af', marginBottom: 16 },
-  codeBox: {
-    backgroundColor: '#1e293b', borderRadius: 10, padding: 14,
-    maxHeight: 200, marginBottom: 16,
-  },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: '80%' },
+  title: { fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  sub: { fontSize: 13, marginBottom: 16 },
+  codeBox: { backgroundColor: '#1e293b', borderRadius: 10, padding: 14, maxHeight: 200, marginBottom: 16 },
   code: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 11, color: '#e2e8f0', lineHeight: 18 },
   btnRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   btn: { flex: 1, borderRadius: 10, padding: 13, alignItems: 'center' },
   copyBtn: { backgroundColor: '#6366f1' },
   copyTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  shareBtn: { backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb' },
-  shareTxt: { color: '#374151', fontWeight: '600', fontSize: 14 },
+  shareTxt: { fontWeight: '600', fontSize: 14 },
   closeBtn: { alignItems: 'center', paddingTop: 4 },
-  closeTxt: { fontSize: 15, color: '#9ca3af' },
+  closeTxt: { fontSize: 15 },
 });
 
-// ── Main screen ───────────────────────────────────────────────────────────────
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  listHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: c.card, paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: c.borderLight,
+  },
+  listTitle: { fontSize: 20, fontWeight: '700', color: c.text },
+  addBtn: { backgroundColor: c.primary, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  card: {
+    backgroundColor: c.card, marginHorizontal: 16, marginTop: 12,
+    borderRadius: 12, padding: 16,
+    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
+  name: { fontSize: 15, fontWeight: '600', color: c.text, marginBottom: 2 },
+  sub: { fontSize: 12, color: c.primary, marginBottom: 2 },
+  parent: { fontSize: 12, color: c.textLight },
+  stats: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginBottom: 12 },
+  stat: { fontSize: 12, color: c.textMuted },
+  actions: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: c.borderLight, paddingTop: 12 },
+  actionBtn: { flex: 1, borderRadius: 8, paddingVertical: 8, alignItems: 'center', borderWidth: 1, borderColor: c.border },
+  actionTagBtn: { borderColor: c.primary },
+  actionDeleteBtn: { borderColor: c.dangerBg },
+  actionEdit: { fontSize: 13, fontWeight: '600', color: c.textSub },
+  actionTag: { fontSize: 13, fontWeight: '600', color: c.primary },
+  actionDelete: { fontSize: 13, fontWeight: '600', color: c.danger },
+  emptyContainer: { alignItems: 'center', marginTop: 80 },
+  empty: { fontSize: 15, color: c.textLight, marginBottom: 16 },
+  emptyAddBtn: { backgroundColor: c.primary, borderRadius: 10, paddingHorizontal: 24, paddingVertical: 12 },
+  emptyAddTxt: { color: '#fff', fontWeight: '600', fontSize: 14 },
+});
 
 export default function AdBlocksScreen({ navigation }: Props) {
   const [zones, setZones] = useState<AdBlock[]>([]);
@@ -116,6 +137,8 @@ export default function AdBlocksScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [tagModal, setTagModal] = useState<{ name: string; code: string } | null>(null);
   const [tagLoading, setTagLoading] = useState<number | null>(null);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -165,7 +188,7 @@ export default function AdBlocksScreen({ navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={s.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+    return <View style={s.center}><ActivityIndicator size="large" color={c.primary} /></View>;
   }
 
   return (
@@ -174,15 +197,12 @@ export default function AdBlocksScreen({ navigation }: Props) {
         data={zones}
         keyExtractor={(z) => String(z.id)}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor="#6366f1" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={c.primary} />
         }
         ListHeaderComponent={
           <View style={s.listHeader}>
             <Text style={s.listTitle}>Ad Blocks</Text>
-            <TouchableOpacity
-              style={s.addBtn}
-              onPress={() => navigation.navigate('AdBlockForm', {})}
-            >
+            <TouchableOpacity style={s.addBtn} onPress={() => navigation.navigate('AdBlockForm', {})}>
               <Text style={s.addBtnText}>+ Add</Text>
             </TouchableOpacity>
           </View>
@@ -221,7 +241,7 @@ export default function AdBlocksScreen({ navigation }: Props) {
                 disabled={tagLoading === item.id}
               >
                 {tagLoading === item.id
-                  ? <ActivityIndicator size="small" color="#6366f1" />
+                  ? <ActivityIndicator size="small" color={c.primary} />
                   : <Text style={s.actionTag}>Get Tag</Text>}
               </TouchableOpacity>
 
@@ -237,10 +257,7 @@ export default function AdBlocksScreen({ navigation }: Props) {
         ListEmptyComponent={
           <View style={s.emptyContainer}>
             <Text style={s.empty}>No ad blocks yet.</Text>
-            <TouchableOpacity
-              style={s.emptyAddBtn}
-              onPress={() => navigation.navigate('AdBlockForm', {})}
-            >
+            <TouchableOpacity style={s.emptyAddBtn} onPress={() => navigation.navigate('AdBlockForm', {})}>
               <Text style={s.emptyAddTxt}>Create your first ad block</Text>
             </TouchableOpacity>
           </View>
@@ -254,56 +271,9 @@ export default function AdBlocksScreen({ navigation }: Props) {
           adBlockName={tagModal.name}
           jsCode={tagModal.code}
           onClose={() => setTagModal(null)}
+          c={c}
         />
       )}
     </View>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  listHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 16,
-    borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
-  },
-  listTitle: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  addBtn: {
-    backgroundColor: '#6366f1', borderRadius: 20,
-    paddingHorizontal: 16, paddingVertical: 7,
-  },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  card: {
-    backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12,
-    borderRadius: 12, padding: 16,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
-  },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 2 },
-  sub: { fontSize: 12, color: '#6366f1', marginBottom: 2 },
-  parent: { fontSize: 12, color: '#9ca3af' },
-
-  stats: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginBottom: 12 },
-  stat: { fontSize: 12, color: '#6b7280' },
-
-  actions: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 12 },
-  actionBtn: {
-    flex: 1, borderRadius: 8, paddingVertical: 8, alignItems: 'center',
-    borderWidth: 1, borderColor: '#e5e7eb',
-  },
-  actionTagBtn: { borderColor: '#6366f1' },
-  actionDeleteBtn: { borderColor: '#fee2e2' },
-  actionEdit: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  actionTag: { fontSize: 13, fontWeight: '600', color: '#6366f1' },
-  actionDelete: { fontSize: 13, fontWeight: '600', color: '#ef4444' },
-
-  emptyContainer: { alignItems: 'center', marginTop: 80 },
-  empty: { fontSize: 15, color: '#9ca3af', marginBottom: 16 },
-  emptyAddBtn: { backgroundColor: '#6366f1', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyAddTxt: { color: '#fff', fontWeight: '600', fontSize: 14 },
-});

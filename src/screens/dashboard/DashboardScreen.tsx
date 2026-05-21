@@ -12,6 +12,7 @@ import { DashboardData } from '../../types/publisher';
 import useAuthStore from '../../stores/authStore';
 import SkeletonCard from '../../components/SkeletonCard';
 import { DashboardStackParamList } from '../../navigation/AppTabs';
+import { useTheme, AppColors } from '../../theme';
 
 type Props = NativeStackScreenProps<DashboardStackParamList, 'Dashboard'>;
 
@@ -21,12 +22,56 @@ const SCREEN_W = Dimensions.get('window').width;
 
 type ChartMode = 'earnings' | 'impressions';
 
+const makeStyles = (c: AppColors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { backgroundColor: c.headerBg, padding: 24, paddingTop: 56 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  greeting: { fontSize: 22, fontWeight: '700', color: c.headerText },
+  email: { fontSize: 13, color: c.headerSub, marginTop: 2 },
+  balance: { fontSize: 16, color: c.headerText, marginTop: 12, fontWeight: '600' },
+  bellBtn: { padding: 4 },
+  bellIcon: { fontSize: 22 },
+  sectionTitle: {
+    fontSize: 16, fontWeight: '700', color: c.textSub,
+    marginHorizontal: 16, marginTop: 20, marginBottom: 10,
+  },
+  sectionTitle2: { fontSize: 16, fontWeight: '700', color: c.textSub },
+  row: { flexDirection: 'row', paddingHorizontal: 12, gap: 8, marginBottom: 8 },
+  card: {
+    flex: 1, backgroundColor: c.card, borderRadius: 12, padding: 16,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+  },
+  cardLabel: { fontSize: 12, color: c.textLight, marginBottom: 4 },
+  cardValue: { fontSize: 18, fontWeight: '700', color: c.text },
+  cardChange: { fontSize: 12, marginTop: 2 },
+  chartSection: {
+    marginHorizontal: 16, marginTop: 20, marginBottom: 12,
+    backgroundColor: c.card, borderRadius: 12, padding: 16,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+  },
+  chartHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12,
+  },
+  chartContainer: { alignItems: 'center' },
+  chartToggle: { flexDirection: 'row', gap: 6 },
+  toggleBtn: {
+    paddingHorizontal: 12, paddingVertical: 4,
+    borderRadius: 20, backgroundColor: c.bg,
+  },
+  toggleBtnActive: { backgroundColor: c.primary },
+  toggleText: { fontSize: 12, fontWeight: '600', color: c.textMuted },
+  toggleTextActive: { color: '#fff' },
+});
+
 function EarningsChart({
   data,
   mode,
+  c,
 }: {
   data: Array<{ date: string; impressions: number; earnings: number }>;
   mode: ChartMode;
+  c: AppColors;
 }) {
   if (!data || data.length < 2) return null;
 
@@ -74,29 +119,29 @@ function EarningsChart({
     <Svg width={W} height={H}>
       <Defs>
         <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#6366f1" stopOpacity="0.25" />
-          <Stop offset="1" stopColor="#6366f1" stopOpacity="0" />
+          <Stop offset="0" stopColor={c.primary} stopOpacity="0.25" />
+          <Stop offset="1" stopColor={c.primary} stopOpacity="0" />
         </LinearGradient>
       </Defs>
       {yLabels.map((l, i) => (
-        <Line key={i} x1={PL} y1={l.y} x2={W - PR} y2={l.y} stroke="#e5e7eb" strokeWidth={1} />
+        <Line key={i} x1={PL} y1={l.y} x2={W - PR} y2={l.y} stroke={c.border} strokeWidth={1} />
       ))}
       <Path d={areaPath} fill="url(#areaGrad)" />
       <Path
         d={linePath}
         fill="none"
-        stroke="#6366f1"
+        stroke={c.primary}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       {yLabels.map((l, i) => (
-        <SvgText key={i} x={PL - 4} y={l.y + 4} fontSize={9} fill="#9ca3af" textAnchor="end">
+        <SvgText key={i} x={PL - 4} y={l.y + 4} fontSize={9} fill={c.textLight} textAnchor="end">
           {formatY(l.v)}
         </SvgText>
       ))}
       {xLabels.map((l, i) => (
-        <SvgText key={i} x={l.x} y={H - 6} fontSize={9} fill="#9ca3af" textAnchor="middle">
+        <SvgText key={i} x={l.x} y={H - 6} fontSize={9} fill={c.textLight} textAnchor="middle">
           {l.label}
         </SvgText>
       ))}
@@ -104,14 +149,17 @@ function EarningsChart({
   );
 }
 
-function StatCard({ label, value, change }: { label: string; value: string; change?: number }) {
+function StatCard({ label, value, change, c, s }: {
+  label: string; value: string; change?: number;
+  c: AppColors; s: ReturnType<typeof makeStyles>;
+}) {
   const pos = change !== undefined && change >= 0;
   return (
     <View style={s.card}>
       <Text style={s.cardLabel}>{label}</Text>
       <Text style={s.cardValue}>{value}</Text>
       {change !== undefined && (
-        <Text style={[s.cardChange, { color: pos ? '#10b981' : '#ef4444' }]}>
+        <Text style={[s.cardChange, { color: pos ? c.success : c.danger }]}>
           {pos ? '▲' : '▼'} {Math.abs(change)}%
         </Text>
       )}
@@ -126,6 +174,8 @@ export default function DashboardScreen({ navigation }: Props) {
   const [chartMode, setChartMode] = useState<ChartMode>('earnings');
   const logout = useAuthStore((st) => st.logout);
   const user = useAuthStore((st) => st.user);
+  const { colors: c } = useTheme();
+  const s = makeStyles(c);
 
   const load = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -142,18 +192,16 @@ export default function DashboardScreen({ navigation }: Props) {
   useEffect(() => { load(); }, []);
 
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
+    navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
   if (loading) {
     return (
       <View style={s.container}>
         <View style={s.header}>
-          <SkeletonCard height={22} borderRadius={6} style={{ width: '50%', marginBottom: 8, backgroundColor: '#818cf8' }} />
-          <SkeletonCard height={13} borderRadius={4} style={{ width: '65%', backgroundColor: '#818cf8', marginBottom: 12 }} />
-          <SkeletonCard height={16} borderRadius={4} style={{ width: '40%', backgroundColor: '#818cf8' }} />
+          <SkeletonCard height={22} borderRadius={6} style={{ width: '50%', marginBottom: 8, backgroundColor: c.primaryMuted }} />
+          <SkeletonCard height={13} borderRadius={4} style={{ width: '65%', backgroundColor: c.primaryMuted, marginBottom: 12 }} />
+          <SkeletonCard height={16} borderRadius={4} style={{ width: '40%', backgroundColor: c.primaryMuted }} />
         </View>
         <View style={{ paddingHorizontal: 16, marginTop: 20 }}>
           <SkeletonCard height={14} borderRadius={4} style={{ width: 80, marginBottom: 10 }} />
@@ -182,7 +230,7 @@ export default function DashboardScreen({ navigation }: Props) {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => { setRefreshing(true); load(true); }}
-          tintColor="#6366f1"
+          tintColor={c.primary}
         />
       }
     >
@@ -201,12 +249,12 @@ export default function DashboardScreen({ navigation }: Props) {
 
       <Text style={s.sectionTitle}>Earnings</Text>
       <View style={s.row}>
-        <StatCard label="Today" value={fmt(data?.earnings.today ?? 0)} />
-        <StatCard label="This Week" value={fmt(data?.earnings.this_week ?? 0)} />
+        <StatCard label="Today" value={fmt(data?.earnings.today ?? 0)} c={c} s={s} />
+        <StatCard label="This Week" value={fmt(data?.earnings.this_week ?? 0)} c={c} s={s} />
       </View>
       <View style={s.row}>
-        <StatCard label="This Month" value={fmt(data?.earnings.this_month ?? 0)} />
-        <StatCard label="Last Month" value={fmt(data?.earnings.last_month ?? 0)} />
+        <StatCard label="This Month" value={fmt(data?.earnings.this_month ?? 0)} c={c} s={s} />
+        <StatCard label="Last Month" value={fmt(data?.earnings.last_month ?? 0)} c={c} s={s} />
       </View>
 
       <View style={s.chartSection}>
@@ -232,7 +280,7 @@ export default function DashboardScreen({ navigation }: Props) {
           </View>
         </View>
         <View style={s.chartContainer}>
-          <EarningsChart data={data?.chart_data ?? []} mode={chartMode} />
+          <EarningsChart data={data?.chart_data ?? []} mode={chartMode} c={c} />
         </View>
       </View>
 
@@ -241,11 +289,13 @@ export default function DashboardScreen({ navigation }: Props) {
           label="Impressions"
           value={fmtK(data?.metrics.impressions ?? 0)}
           change={data?.metrics.impressions_change}
+          c={c} s={s}
         />
         <StatCard
           label="Clicks"
           value={fmtK(data?.metrics.clicks ?? 0)}
           change={data?.metrics.clicks_change}
+          c={c} s={s}
         />
       </View>
       <View style={[s.row, { marginBottom: 32 }]}>
@@ -253,55 +303,15 @@ export default function DashboardScreen({ navigation }: Props) {
           label="Revenue"
           value={fmt(data?.metrics.revenue ?? 0)}
           change={data?.metrics.revenue_change}
+          c={c} s={s}
         />
         <StatCard
           label="Forecast"
           value={fmt(data?.earnings.forecast ?? 0)}
           change={data?.earnings.forecast_pct}
+          c={c} s={s}
         />
       </View>
     </ScrollView>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#6366f1', padding: 24, paddingTop: 56 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  greeting: { fontSize: 22, fontWeight: '700', color: '#fff' },
-  email: { fontSize: 13, color: '#c7d2fe', marginTop: 2 },
-  balance: { fontSize: 16, color: '#fff', marginTop: 12, fontWeight: '600' },
-  bellBtn: { padding: 4 },
-  bellIcon: { fontSize: 22 },
-  sectionTitle: {
-    fontSize: 16, fontWeight: '700', color: '#374151',
-    marginHorizontal: 16, marginTop: 20, marginBottom: 10,
-  },
-  sectionTitle2: { fontSize: 16, fontWeight: '700', color: '#374151' },
-  row: { flexDirection: 'row', paddingHorizontal: 12, gap: 8, marginBottom: 8 },
-  card: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 16,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
-  },
-  cardLabel: { fontSize: 12, color: '#9ca3af', marginBottom: 4 },
-  cardValue: { fontSize: 18, fontWeight: '700', color: '#111827' },
-  cardChange: { fontSize: 12, marginTop: 2 },
-  chartSection: {
-    marginHorizontal: 16, marginTop: 20, marginBottom: 12,
-    backgroundColor: '#fff', borderRadius: 12, padding: 16,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
-  },
-  chartHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12,
-  },
-  chartContainer: { alignItems: 'center' },
-  chartToggle: { flexDirection: 'row', gap: 6 },
-  toggleBtn: {
-    paddingHorizontal: 12, paddingVertical: 4,
-    borderRadius: 20, backgroundColor: '#f3f4f6',
-  },
-  toggleBtnActive: { backgroundColor: '#6366f1' },
-  toggleText: { fontSize: 12, fontWeight: '600', color: '#6b7280' },
-  toggleTextActive: { color: '#fff' },
-});
